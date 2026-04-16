@@ -122,7 +122,7 @@ def make_info(design_context: DesignContext, width_mode: WidthMode):
     path_define.outputs_dir.mkdir(parents=True, exist_ok=True)
     file_path = path_define.outputs_dir.joinpath(f'info-{design_context.font_size}px-{width_mode}.md')
     with file_path.open('w', encoding='utf-8') as file:
-        file.write(f'# Fusion Pixel {design_context.font_size}px {'等宽模式' if width_mode == 'monospaced' else '比例模式'}\n')
+        file.write(f'# Fusion Bold Pixel {design_context.font_size}px {'等宽模式' if width_mode == 'monospaced' else '比例模式'}\n')
         file.write('\n')
         file.write('## 基本信息\n')
         file.write('\n')

@@ -1,4 +1,4 @@
-# Fusion Pixel 12px 比例模式
+# Fusion Bold Pixel 12px 比例模式
 
 ## 基本信息
 

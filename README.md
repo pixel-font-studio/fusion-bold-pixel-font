@@ -8,13 +8,11 @@
 [![Discord](https://img.shields.io/badge/discord-像素字体工房-4E5AF0?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/3GKtPKtjdU)
 [![QQ Group](https://img.shields.io/badge/QQ群-像素字体工房-brightgreen?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/jPk8sSitUI)
 
-[「缝合像素字体」](https://github.com/TakWolf/fusion-pixel-font) 的算法粗体版本。
+[「缝合像素字体」](https://github.com/TakWolf/fusion-pixel-font) 的算法粗体版本，黑体风格。
 
 > [!WARNING]
 > 
-> 这不是一个正式项目，只是一个用于测试的项目，旨在提供思路和验证概念。
-> 
-> 本项目预计不会得到持续性维护。
+> 这不是一个正式项目，仅用于测试，旨在提供思路和验证概念。
 > 
 
 ## 预览
@@ -69,7 +67,7 @@ result_bitmap = solid_bitmap.minus(shadow_bitmap)
 12px * 12px -> 12px * 13px
 ```
 
-此时，等宽模式将不再对其。（原始为 6px * 2 = 12px，变换后变为 7px * 2 != 13px，差 1 像素）
+此时，等宽模式将不再对齐（原始为 6px * 2 = 12px，变换后变为 7px * 2 != 13px，差 1px）。
 
 ## 笔者观点
 

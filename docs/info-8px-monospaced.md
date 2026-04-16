@@ -1,4 +1,4 @@
-# Fusion Pixel 8px 等宽模式
+# Fusion Bold Pixel 8px 等宽模式
 
 ## 基本信息
 
