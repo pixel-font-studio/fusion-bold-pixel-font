@@ -1,0 +1,52 @@
+misaki:
+  -
+    font-file-name: misaki_gothic.ttf
+    dump-dir-name: misaki
+    font-size: 8
+    rasterize-offset-y: 1
+miseki-bitmap:
+  -
+    font-file-name: MisekiBitmap.ttf
+    dump-dir-name: miseki-bitmap
+    font-size: 8
+    rasterize-offset-y: 1
+boutique-bitmap-7x7:
+  -
+    font-file-name: BoutiqueBitmap7x7_{version}.ttf
+    dump-dir-name: boutique-bitmap
+    font-size: 8
+    rasterize-offset-y: 1
+boutique-bitmap-9x9:
+  -
+    font-file-name: BoutiqueBitmap9x9_{version}.ttf
+    dump-dir-name: boutique-bitmap
+    font-size: 10
+    rasterize-offset-y: 1
+cubic-11:
+  -
+    font-file-name: Cubic_11.woff2
+    dump-dir-name: cubic-11
+    font-size: 12
+    rasterize-offset-x: -1
+    rasterize-offset-y: 1
+galmuri:
+  -
+    font-file-name: Galmuri7.ttf
+    dump-dir-name: galmuri
+    font-size: 8
+    rasterize-offset-y: 1
+  -
+    font-file-name: Galmuri9.ttf
+    dump-dir-name: galmuri
+    font-size: 10
+    rasterize-offset-y: 1
+  -
+    font-file-name: Galmuri11.ttf
+    dump-dir-name: galmuri
+    font-size: 12
+    rasterize-offset-y: 1
+  -
+    font-file-name: GalmuriMono7.ttf
+    dump-dir-name: galmuri-monospaced
+    font-size: 8
+    rasterize-offset-y: 1

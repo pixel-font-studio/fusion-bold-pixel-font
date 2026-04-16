@@ -1,0 +1,234 @@
+import itertools
+import math
+from datetime import datetime
+from pathlib import Path
+
+import unidata_blocks
+from loguru import logger
+from pixel_font_builder import FontBuilder, WeightName, SerifStyle, SlantStyle, WidthStyle, Glyph, opentype
+from pixel_font_knife import glyph_file_util, glyph_mapping_util, kerning_util
+from pixel_font_knife.glyph_file_util import GlyphFlavorGroup
+from pixel_font_knife.mono_bitmap import MonoBitmap
+
+from tools import configs
+from tools.configs import path_define, options, DumpConfig, FallbackConfig
+from tools.configs.options import FontSize, WidthMode, LanguageFlavor, FontFormat
+from tools.services import dump_service
+
+
+class DesignContext:
+    @staticmethod
+    def load(font_size: FontSize) -> DesignContext:
+        contexts = {}
+        for width_mode_dir_name in itertools.chain(['common'], options.width_modes):
+            context = glyph_file_util.load_context(path_define.fallback_bold_glyphs_dir.joinpath(str(font_size), width_mode_dir_name))
+            context.update(glyph_file_util.load_context(path_define.patch_bold_glyphs_dir.joinpath(str(font_size), width_mode_dir_name)))
+            context.update(glyph_file_util.load_context(path_define.ark_pixel_bold_glyphs_dir.joinpath(str(font_size), width_mode_dir_name)))
+
+            for flavor_group in context.values():
+                if None not in flavor_group:
+                    for language_flavor in options.language_file_flavors:
+                        if language_flavor in flavor_group:
+                            flavor_group[None] = flavor_group[language_flavor]
+                            break
+
+            for mapping in configs.mappings:
+                glyph_mapping_util.apply_mapping(context, mapping)
+
+            for flavor_group in context.values():
+                if 'zh_cn' in flavor_group:
+                    flavor_group['zh_hans'] = flavor_group['zh_cn']
+                if 'zh_tr' in flavor_group:
+                    flavor_group['zh_hant'] = flavor_group['zh_tr']
+
+            contexts[width_mode_dir_name] = context
+
+        glyph_files = {}
+        for width_mode in options.width_modes:
+            glyph_files[width_mode] = dict(contexts['common'])
+            glyph_files[width_mode].update(contexts[width_mode])
+
+        return DesignContext(font_size, contexts, glyph_files)
+
+    font_size: FontSize
+    _contexts: dict[str, dict[int, GlyphFlavorGroup]]
+    _glyph_files: dict[WidthMode, dict[int, GlyphFlavorGroup]]
+    _alphabet_cache: dict[str, set[str]]
+    _proportional_kerning_values: dict[tuple[str, str], int] | None
+
+    def __init__(
+            self,
+            font_size: FontSize,
+            contexts: dict[str, dict[int, GlyphFlavorGroup]],
+            glyph_files: dict[WidthMode, dict[int, GlyphFlavorGroup]],
+    ):
+        self.font_size = font_size
+        self._contexts = contexts
+        self._glyph_files = glyph_files
+        self._alphabet_cache = {}
+        self._proportional_kerning_values = None
+
+    def get_alphabet(self, width_mode: WidthMode) -> set[str]:
+        if width_mode in self._alphabet_cache:
+            alphabet = self._alphabet_cache[width_mode]
+        else:
+            alphabet = {chr(code_point) for code_point in self._glyph_files[width_mode] if code_point >= 0}
+            self._alphabet_cache[width_mode] = alphabet
+        return alphabet
+
+    def _create_builder(self, width_mode: WidthMode, language_flavor: LanguageFlavor) -> FontBuilder:
+        layout_metric = configs.font_configs[self.font_size].layout_metrics[width_mode]
+
+        builder = FontBuilder()
+        builder.font_metric.font_size = self.font_size
+        builder.font_metric.horizontal_layout.ascent = layout_metric.ascent
+        builder.font_metric.horizontal_layout.descent = layout_metric.descent
+        builder.font_metric.vertical_layout.ascent = math.ceil(layout_metric.line_height / 2)
+        builder.font_metric.vertical_layout.descent = -math.floor(layout_metric.line_height / 2)
+        builder.font_metric.x_height = layout_metric.x_height
+        builder.font_metric.cap_height = layout_metric.cap_height
+        builder.font_metric.underline_position = layout_metric.underline_position
+        builder.font_metric.underline_thickness = 1
+        builder.font_metric.strikeout_position = layout_metric.strikeout_position
+        builder.font_metric.strikeout_thickness = 1
+
+        builder.meta_info.version = configs.version
+        builder.meta_info.created_time = datetime.fromisoformat(f'{configs.version.replace('.', '-')}T00:00:00Z')
+        builder.meta_info.modified_time = builder.meta_info.created_time
+        builder.meta_info.family_name = f'Fusion Bold Pixel {self.font_size}px {width_mode[:4].capitalize()} {language_flavor}'
+        builder.meta_info.weight_name = WeightName.REGULAR
+        builder.meta_info.serif_style = SerifStyle.SANS_SERIF
+        builder.meta_info.slant_style = SlantStyle.NORMAL
+        builder.meta_info.width_style = WidthStyle(width_mode.capitalize())
+        builder.meta_info.manufacturer = 'TakWolf'
+        builder.meta_info.designer = 'TakWolf'
+        builder.meta_info.description = 'Open source Pan-CJK pixel font'
+        builder.meta_info.copyright_info = 'Copyright (c) 2026, TakWolf (https://takwolf.com)'
+        builder.meta_info.license_info = 'This Font Software is licensed under the SIL Open Font License, Version 1.1'
+        builder.meta_info.vendor_url = 'https://pixel-font-studio.github.io/fusion-bold-pixel-font'
+        builder.meta_info.designer_url = 'https://takwolf.com'
+        builder.meta_info.license_url = 'https://github.com/pixel-font-studio/fusion-bold-pixel-font/blob/master/LICENSE-OFL'
+
+        glyph_sequence = glyph_file_util.get_glyph_sequence(self._glyph_files[width_mode], [language_flavor])
+        for glyph_file in glyph_sequence:
+            code_point = glyph_file.code_point
+            block = unidata_blocks.get_block_by_code_point(code_point)
+
+            horizontal_offset_x = 0
+            horizontal_offset_y = layout_metric.baseline - self.font_size - (glyph_file.height - self.font_size) // 2
+            advance_width = glyph_file.width
+
+            vertical_offset_x = -math.ceil(glyph_file.width / 2)
+            if code_point in (
+                    0x3031, 0x3032,
+            ):
+                vertical_offset_y = (self.font_size * 2 - glyph_file.height) // 2
+                advance_height = self.font_size * 2
+            else:
+                vertical_offset_y = (self.font_size - glyph_file.height) // 2
+                advance_height = self.font_size
+
+            if block is not None and block.name not in (
+                    'Box Drawing',
+                    'Block Elements',
+            ) and code_point not in (
+                    0x25D8, 0x25D9, 0x25DA, 0x25DB,
+                    0x25E2, 0x25E3, 0x25E4, 0x25E5,
+                    0x25F8, 0x25F9, 0x25FA, 0x25FF,
+                    0x3031, 0x3032, 0x3033, 0x3034, 0x3035,
+            ):
+                vertical_offset_y -= 1
+
+            builder.glyphs.append(Glyph(
+                name=glyph_file.glyph_name,
+                horizontal_offset=(horizontal_offset_x, horizontal_offset_y),
+                advance_width=advance_width,
+                vertical_offset=(vertical_offset_x, vertical_offset_y),
+                advance_height=advance_height,
+                bitmap=glyph_file.bitmap.data,
+            ))
+
+        character_mapping = glyph_file_util.get_character_mapping(self._glyph_files[width_mode], language_flavor)
+        builder.character_mapping.update(character_mapping)
+
+        if width_mode == 'proportional':
+            if self._proportional_kerning_values is None:
+                self._proportional_kerning_values = kerning_util.calculate_kerning_values(configs.kerning_config, self._contexts['proportional'])
+            builder.kerning_values.update(self._proportional_kerning_values)
+
+        builder.opentype_config.fields_override.head_y_max = layout_metric.ascent
+        builder.opentype_config.fields_override.head_y_min = layout_metric.descent
+
+        return builder
+
+    def make_fonts(self, width_mode: WidthMode, font_formats: list[FontFormat]):
+        path_define.outputs_dir.mkdir(parents=True, exist_ok=True)
+
+        if len(font_formats) > 0:
+            for language_flavor in options.language_flavors:
+                builder = self._create_builder(width_mode, language_flavor)
+                for font_format in font_formats:
+                    file_path = path_define.outputs_dir.joinpath(f'fusion-bold-pixel-{self.font_size}px-{width_mode}-{language_flavor}.{font_format}')
+                    match font_format:
+                        case 'otf.woff':
+                            builder.save_otf(file_path, flavor=opentype.Flavor.WOFF)
+                        case 'otf.woff2':
+                            builder.save_otf(file_path, flavor=opentype.Flavor.WOFF2)
+                        case 'ttf.woff':
+                            builder.save_ttf(file_path, flavor=opentype.Flavor.WOFF)
+                        case 'ttf.woff2':
+                            builder.save_ttf(file_path, flavor=opentype.Flavor.WOFF2)
+                        case _:
+                            getattr(builder, f'save_{font_format}')(file_path)
+                    logger.info("Make font: '{}'", file_path)
+
+
+def _bold_glyphs(source_root_dir: Path, target_root_dir: Path):
+    if not source_root_dir.is_dir():
+        return
+
+    logger.info("Bold glyphs: '{}' -> '{}'", source_root_dir, target_root_dir)
+    for file_dir, _, file_names in source_root_dir.walk():
+        for file_name in file_names:
+            if not file_name.endswith('.png'):
+                continue
+
+            source_file_path = file_dir.joinpath(file_name)
+            target_file_path = target_root_dir.joinpath(source_file_path.relative_to(source_root_dir))
+
+            bitmap = MonoBitmap.load_png(source_file_path)
+            solid_bitmap = bitmap.resize(left=1).plus(bitmap)
+            shadow_bitmap = solid_bitmap.minus(bitmap).resize(left=1)
+            result_bitmap = solid_bitmap.minus(shadow_bitmap)
+
+            target_file_path.parent.mkdir(parents=True, exist_ok=True)
+            result_bitmap.save_png(target_file_path)
+
+
+def load_design_contexts(font_sizes: list[FontSize]) -> dict[FontSize, DesignContext]:
+    dump_configs = DumpConfig.load()
+    fallback_configs = FallbackConfig.load()
+    design_contexts = {}
+    for font_size in font_sizes:
+        for dump_config in dump_configs[font_size]:
+            dump_service.dump_font(dump_config)
+
+        for fallback_config in fallback_configs[font_size]:
+            dump_service.apply_fallback(fallback_config)
+
+        _bold_glyphs(
+            path_define.ark_pixel_glyphs_dir.joinpath(str(font_size)),
+            path_define.ark_pixel_bold_glyphs_dir.joinpath(str(font_size)),
+        )
+        _bold_glyphs(
+            path_define.patch_glyphs_dir.joinpath(str(font_size)),
+            path_define.patch_bold_glyphs_dir.joinpath(str(font_size)),
+        )
+        _bold_glyphs(
+            path_define.fallback_glyphs_dir.joinpath(str(font_size)),
+            path_define.fallback_bold_glyphs_dir.joinpath(str(font_size)),
+        )
+
+        design_context = DesignContext.load(font_size)
+        design_contexts[font_size] = design_context
+    return design_contexts

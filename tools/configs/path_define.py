@@ -1,0 +1,27 @@
+from pathlib import Path
+
+project_root_dir = Path(__file__).parent.joinpath('..', '..').resolve()
+
+assets_dir = project_root_dir.joinpath('assets')
+configs_dir = assets_dir.joinpath('configs')
+patch_glyphs_dir = assets_dir.joinpath('patch-glyphs')
+fonts_dir = assets_dir.joinpath('fonts')
+mappings_dir = assets_dir.joinpath('mappings')
+kernings_dir = assets_dir.joinpath('kernings')
+templates_dir = assets_dir.joinpath('templates')
+
+cache_dir = project_root_dir.joinpath('cache')
+downloads_dir = cache_dir.joinpath('downloads')
+ark_pixel_glyphs_dir = cache_dir.joinpath('ark-pixel-glyphs')
+
+build_dir = project_root_dir.joinpath('build')
+dump_dir = build_dir.joinpath('dump')
+fallback_glyphs_dir = build_dir.joinpath('fallback-glyphs')
+outputs_dir = build_dir.joinpath('outputs')
+releases_dir = build_dir.joinpath('releases')
+
+ark_pixel_bold_glyphs_dir = build_dir.joinpath('ark-pixel-bold-glyphs')
+patch_bold_glyphs_dir = build_dir.joinpath('patch-bold-glyphs')
+fallback_bold_glyphs_dir = build_dir.joinpath('fallback-bold-glyphs')
+
+docs_dir = project_root_dir.joinpath('docs')
