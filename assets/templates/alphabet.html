@@ -7,6 +7,10 @@
             padding: 0;
             box-sizing: border-box;
         }
+        @font-face {
+            font-family: ark-pixel-12px-monospaced-latin;
+            src: url("https://ark-pixel-font.takwolf.com/ark-pixel-12px-monospaced-latin.otf.woff2");
+        }
         {% for locale, language_flavor in locale_to_language_flavor.items() %}
         {% with font_family = 'fusion-bold-pixel-' ~ font_config.font_size ~ 'px-' ~ width_mode ~ '-' ~ language_flavor %}
         @font-face {
@@ -18,14 +22,6 @@
         }
         {% endwith %}
         {% endfor %}
-        {% if font_config.font_size != 12 or width_mode != 'monospaced' %}
-        {% with font_family = 'fusion-bold-pixel-12px-monospaced-latin' %}
-        @font-face {
-            font-family: {{ font_family }};
-            src: url("{{ font_family }}.otf.woff2");
-        }
-        {% endwith %}
-        {% endif %}
         .options-group {
             height: 36px;
             position: fixed;
@@ -44,7 +40,7 @@
             flex-direction: row;
             align-items: center;
             color: #4b4b4b;
-            font-family: fusion-bold-pixel-12px-monospaced-latin, sans-serif;
+            font-family: ark-pixel-12px-monospaced-latin, sans-serif;
             font-size: 24px;
             line-height: 36px;
         }

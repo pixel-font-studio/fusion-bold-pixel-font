@@ -7,6 +7,10 @@
             padding: 0;
             box-sizing: border-box;
         }
+        @font-face {
+            font-family: ark-pixel-12px-monospaced-latin;
+            src: url("https://ark-pixel-font.takwolf.com/ark-pixel-12px-monospaced-latin.otf.woff2");
+        }
         {% for font_config in font_configs.values() %}
         {% for width_mode in width_modes %}
         .font-{{ font_config.font_size }}px-{{ width_mode }} {
@@ -45,7 +49,7 @@
             flex-direction: row;
             align-items: center;
             color: #4b4b4b;
-            font-family: fusion-bold-pixel-12px-monospaced-latin, sans-serif;
+            font-family: ark-pixel-12px-monospaced-latin, sans-serif;
             font-size: 24px;
             line-height: 36px;
         }
