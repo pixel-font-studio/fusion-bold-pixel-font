@@ -17,6 +17,8 @@
 
 ## 预览
 
+[点击此链接](https://pixel-font-studio.github.io/fusion-bold-pixel-font/playground.html) 实时预览字体效果。
+
 ### 8 像素
 
 ![Preview-8px](docs/preview-8px.png)
@@ -28,6 +30,10 @@
 ### 12 像素
 
 ![Preview-12px](docs/preview-12px.png)
+
+## 下载
+
+[点击此链接](https://github.com/pixel-font-studio/fusion-bold-pixel-font/releases) 下载最新版本。
 
 ## 算法
 
