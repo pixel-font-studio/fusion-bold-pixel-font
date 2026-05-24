@@ -4,9 +4,12 @@ import unidata_blocks
 from PIL import ImageFont, Image, ImageDraw
 from fontTools.ttLib import TTFont
 from loguru import logger
+from pixel_font_knife.mono_bitmap import MonoBitmap
 
+from tools.configs import path_define
 from tools.configs.dump import DumpConfig
 from tools.configs.fallback import FallbackConfig
+from tools.configs.options import FontSize
 
 
 def dump_font(dump_config: DumpConfig):
@@ -61,3 +64,40 @@ def apply_fallback(fallback_config: FallbackConfig):
             glyph_file_path_to = glyph_file_dir_to.joinpath(glyph_file_name)
             glyph_file_dir_to.mkdir(parents=True, exist_ok=True)
             glyph_file_path_from.copy(glyph_file_path_to)
+
+
+def bolding_glyphs(font_size: FontSize):
+    root_dirs = [
+        (
+            path_define.ark_pixel_glyphs_dir.joinpath(str(font_size)),
+            path_define.ark_pixel_bold_glyphs_dir.joinpath(str(font_size)),
+        ),
+        (
+            path_define.patch_glyphs_dir.joinpath(str(font_size)),
+            path_define.patch_bold_glyphs_dir.joinpath(str(font_size)),
+        ),
+        (
+            path_define.fallback_glyphs_dir.joinpath(str(font_size)),
+            path_define.fallback_bold_glyphs_dir.joinpath(str(font_size)),
+        ),
+    ]
+    for source_root_dir, target_root_dir in root_dirs:
+        if not source_root_dir.is_dir():
+            continue
+
+        logger.info("Bolding glyphs: '{}' -> '{}'", source_root_dir, target_root_dir)
+        for file_dir, _, file_names in source_root_dir.walk():
+            for file_name in file_names:
+                if not file_name.endswith('.png'):
+                    continue
+
+                source_file_path = file_dir.joinpath(file_name)
+                target_file_path = target_root_dir.joinpath(source_file_path.relative_to(source_root_dir))
+
+                bitmap = MonoBitmap.load_png(source_file_path)
+                solid_bitmap = bitmap.resize(left=1).plus(bitmap)
+                shadow_bitmap = solid_bitmap.minus(bitmap).resize(left=1)
+                result_bitmap = solid_bitmap.minus(shadow_bitmap)
+
+                target_file_path.parent.mkdir(parents=True, exist_ok=True)
+                result_bitmap.save_png(target_file_path)

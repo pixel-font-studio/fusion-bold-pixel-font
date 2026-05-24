@@ -1,19 +1,16 @@
 import itertools
 import math
 from datetime import datetime
-from pathlib import Path
 
 import unidata_blocks
 from loguru import logger
 from pixel_font_builder import FontBuilder, WeightName, SerifStyle, SlantStyle, WidthStyle, Glyph, opentype
 from pixel_font_knife import glyph_file_util, glyph_mapping_util, kerning_util
 from pixel_font_knife.glyph_file_util import GlyphFlavorGroup
-from pixel_font_knife.mono_bitmap import MonoBitmap
 
 from tools import configs
 from tools.configs import path_define, options
 from tools.configs.options import FontSize, WidthMode, LanguageFlavor, FontFormat
-from tools.services import dump_service
 
 
 class DesignContext:
@@ -178,52 +175,3 @@ class DesignContext:
                         case _:
                             getattr(builder, f'save_{font_format}')(file_path)
                     logger.info("Make font: '{}'", file_path)
-
-
-def _bold_glyphs(source_root_dir: Path, target_root_dir: Path):
-    if not source_root_dir.is_dir():
-        return
-
-    logger.info("Bold glyphs: '{}' -> '{}'", source_root_dir, target_root_dir)
-    for file_dir, _, file_names in source_root_dir.walk():
-        for file_name in file_names:
-            if not file_name.endswith('.png'):
-                continue
-
-            source_file_path = file_dir.joinpath(file_name)
-            target_file_path = target_root_dir.joinpath(source_file_path.relative_to(source_root_dir))
-
-            bitmap = MonoBitmap.load_png(source_file_path)
-            solid_bitmap = bitmap.resize(left=1).plus(bitmap)
-            shadow_bitmap = solid_bitmap.minus(bitmap).resize(left=1)
-            result_bitmap = solid_bitmap.minus(shadow_bitmap)
-
-            target_file_path.parent.mkdir(parents=True, exist_ok=True)
-            result_bitmap.save_png(target_file_path)
-
-
-def load_design_contexts(font_sizes: list[FontSize]) -> dict[FontSize, DesignContext]:
-    design_contexts = {}
-    for font_size in font_sizes:
-        for dump_config in configs.dump_configs[font_size]:
-            dump_service.dump_font(dump_config)
-
-        for fallback_config in configs.fallback_configs[font_size]:
-            dump_service.apply_fallback(fallback_config)
-
-        _bold_glyphs(
-            path_define.ark_pixel_glyphs_dir.joinpath(str(font_size)),
-            path_define.ark_pixel_bold_glyphs_dir.joinpath(str(font_size)),
-        )
-        _bold_glyphs(
-            path_define.patch_glyphs_dir.joinpath(str(font_size)),
-            path_define.patch_bold_glyphs_dir.joinpath(str(font_size)),
-        )
-        _bold_glyphs(
-            path_define.fallback_glyphs_dir.joinpath(str(font_size)),
-            path_define.fallback_bold_glyphs_dir.joinpath(str(font_size)),
-        )
-
-        design_context = DesignContext.load(font_size)
-        design_contexts[font_size] = design_context
-    return design_contexts
