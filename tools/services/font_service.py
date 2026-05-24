@@ -11,7 +11,7 @@ from pixel_font_knife.glyph_file_util import GlyphFlavorGroup
 from pixel_font_knife.mono_bitmap import MonoBitmap
 
 from tools import configs
-from tools.configs import path_define, options, DumpConfig, FallbackConfig
+from tools.configs import path_define, options
 from tools.configs.options import FontSize, WidthMode, LanguageFlavor, FontFormat
 from tools.services import dump_service
 
@@ -203,14 +203,12 @@ def _bold_glyphs(source_root_dir: Path, target_root_dir: Path):
 
 
 def load_design_contexts(font_sizes: list[FontSize]) -> dict[FontSize, DesignContext]:
-    dump_configs = DumpConfig.load()
-    fallback_configs = FallbackConfig.load()
     design_contexts = {}
     for font_size in font_sizes:
-        for dump_config in dump_configs[font_size]:
+        for dump_config in configs.dump_configs[font_size]:
             dump_service.dump_font(dump_config)
 
-        for fallback_config in fallback_configs[font_size]:
+        for fallback_config in configs.fallback_configs[font_size]:
             dump_service.apply_fallback(fallback_config)
 
         _bold_glyphs(
