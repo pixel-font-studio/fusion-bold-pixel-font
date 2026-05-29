@@ -30,7 +30,7 @@ def update_docs():
     path_define.docs_dir.mkdir(parents=True, exist_ok=True)
 
     for path_from in path_define.outputs_dir.iterdir():
-        if re.match(r'info-.*px-.*\.md|preview-.*px\.png', path_from.name) is None:
+        if re.match(r'^(info-.*px-.*\.md|preview-.*px\.png)$', path_from.name) is None:
             continue
         path_to = path_from.copy_into(path_define.docs_dir)
         logger.info("Copy file: '{}' -> '{}'", path_from, path_to)
