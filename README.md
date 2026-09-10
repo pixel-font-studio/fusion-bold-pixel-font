@@ -8,7 +8,7 @@
 [![Discord](https://img.shields.io/badge/discord-像素字体工房-4E5AF0?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/3GKtPKtjdU)
 [![QQ Group](https://img.shields.io/badge/QQ群-像素字体工房-brightgreen?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/jPk8sSitUI)
 
-[「缝合像素字体」](https://github.com/TakWolf/fusion-pixel-font) 的算法粗体版本，黑体风格。
+[「缝合像素字体」](https://github.com/TakWolf/fusion-pixel-font) 的算法粗黑体风格版本。
 
 > [!WARNING]
 > 
