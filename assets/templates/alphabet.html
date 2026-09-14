@@ -11,7 +11,7 @@
             font-family: ark-pixel-12px-monospaced-latin;
             src: url("https://ark-pixel-font.takwolf.com/ark-pixel-12px-monospaced-latin.otf.woff2");
         }
-        {% for locale, language_flavor in locale_to_language_flavor.items() %}
+        {% for language_flavor, locale in language_flavor_to_locale.items() %}
         {% with font_family = 'fusion-bold-pixel-' ~ font_config.font_size ~ 'px-' ~ width_mode ~ '-' ~ language_flavor %}
         @font-face {
             font-family: {{ font_family }};
@@ -82,7 +82,7 @@
 {% endblock %}
 {% block body %}
     <div class="options-group">
-        {% for locale, language_flavor in locale_to_language_flavor.items() %}
+        {% for language_flavor, locale in language_flavor_to_locale.items() %}
         <label class="option">
             <input id="radio-locale-{{ locale }}" name="locale" type="radio" onchange="onLocaleChange('{{ locale }}')">
             <span></span>
@@ -101,7 +101,7 @@
     </div>
     <script type="module">
         const settings = {
-            locale: 'zh-hans',
+            locale: 'zh-Hans',
         }
         const json = localStorage.getItem('fusion-bold-pixel-font:settings:alphabet-{{ font_config.font_size }}px-{{ width_mode }}')
         if (json) {
