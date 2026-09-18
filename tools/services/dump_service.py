@@ -4,7 +4,7 @@ import unidata_blocks
 from PIL import ImageFont, Image, ImageDraw
 from fontTools.ttLib import TTFont
 from loguru import logger
-from pixel_font_knife.mono_bitmap import MonoBitmap
+from pixel_font_knife.bitmap.mono_bitmap import MonoBitmap
 
 from tools import configs
 from tools.configs import path_define, options
@@ -75,7 +75,7 @@ def apply_fallbacks(font_size: FontSize) -> None:
 
                 bitmap = MonoBitmap.load_png(file_path)
                 if bitmap.height > canvas_size:
-                    padding = min((bitmap.height - canvas_size) // 2, bitmap.calculate_top_padding(), bitmap.calculate_bottom_padding())
+                    padding = min((bitmap.height - canvas_size) // 2, bitmap.measure_top_padding(), bitmap.measure_bottom_padding())
                     if padding != 0:
                         bitmap = bitmap.resize(top=-padding, bottom=-padding)
                 elif bitmap.height < canvas_size:
@@ -150,9 +150,9 @@ def bolding_glyphs(font_size: FontSize) -> None:
                 target_file_path = target_root_dir.joinpath(source_file_path.relative_to(source_root_dir))
 
                 bitmap = MonoBitmap.load_png(source_file_path)
-                solid_bitmap = bitmap.resize(left=1).plus(bitmap)
-                shadow_bitmap = solid_bitmap.minus(bitmap).resize(left=1)
-                result_bitmap = solid_bitmap.minus(shadow_bitmap)
+                solid_bitmap = bitmap.resize(left=1).union(bitmap)
+                shadow_bitmap = solid_bitmap.difference(bitmap).resize(left=1)
+                result_bitmap = solid_bitmap.difference(shadow_bitmap)
 
                 target_file_path.parent.mkdir(parents=True, exist_ok=True)
                 result_bitmap.save_png(target_file_path)
