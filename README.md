@@ -48,9 +48,9 @@
 
 ```python
 bitmap = MonoBitmap.load_png(file_path)
-solid_bitmap = bitmap.resize(left=1).plus(bitmap)
-shadow_bitmap = solid_bitmap.minus(bitmap).resize(left=1)
-result_bitmap = solid_bitmap.minus(shadow_bitmap)
+solid_bitmap = bitmap.resize(left=1).union(bitmap)
+shadow_bitmap = solid_bitmap.difference(bitmap).resize(left=1)
+result_bitmap = solid_bitmap.difference(shadow_bitmap)
 ```
 
 「左移重叠」效果：
@@ -59,9 +59,9 @@ result_bitmap = solid_bitmap.minus(shadow_bitmap)
 
 ```python
 bitmap = MonoBitmap.load_png(file_path)
-solid_bitmap = bitmap.resize(right=1).plus(bitmap, x=1)
-shadow_bitmap = solid_bitmap.minus(bitmap, x=1).resize(left=-1)
-result_bitmap = solid_bitmap.minus(shadow_bitmap)
+solid_bitmap = bitmap.resize(right=1).union(bitmap, x=1)
+shadow_bitmap = solid_bitmap.difference(bitmap, x=1).resize(left=-1)
+result_bitmap = solid_bitmap.difference(shadow_bitmap)
 ```
 
 变换后，字形尺寸高度不变，宽度会增加 1px，即：
