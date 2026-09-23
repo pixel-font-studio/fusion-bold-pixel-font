@@ -11,8 +11,8 @@
             font-family: ark-pixel-12px-monospaced-latin;
             src: url("https://ark-pixel-font.takwolf.com/ark-pixel-12px-monospaced-latin.otf.woff2");
         }
-        {% for width_mode in width_modes %}
-        {% for language_flavor, locale in language_flavor_to_locale.items() %}
+        {% for width_mode in options.WIDTH_MODES %}
+        {% for language_flavor, locale in manifest.LANGUAGE_FLAVOR_TO_LOCALE.items() %}
         {% with font_family = project.FILE_NAME_PREFIX ~ '-' ~ font_config.font_size ~ 'px-' ~ width_mode ~ '-' ~ language_flavor %}
         @font-face {
             font-family: {{ font_family }};
@@ -38,7 +38,7 @@
             color: white;
             background-color: #4b4b4b;
         }
-        {% for width_mode in width_modes %}
+        {% for width_mode in options.WIDTH_MODES %}
         .theme-light .font-{{ width_mode }} .char-notdef-{{ width_mode }} {
             color: #f83737;
         }
@@ -138,7 +138,7 @@
 {% endblock %}
 {% block body %}
     <div class="options-group">
-        {% for width_mode in width_modes %}
+        {% for width_mode in options.WIDTH_MODES %}
         <label class="option">
             <input id="radio-width-mode-{{ width_mode }}" name="width_mode" type="radio" onchange="onWidthModeChange('{{ width_mode }}')">
             <span></span>
