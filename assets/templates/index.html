@@ -179,7 +179,7 @@
 
         window.applySettings = () => {
             localStorage.setItem('{{ project.FILE_NAME_PREFIX }}-font:settings:index', JSON.stringify(settings))
-            page.className = 'font-' + settings.fontSize + 'px-proportional'
+            page.className = `font-${settings.fontSize}px-proportional`
         }
 
         window.onFontSizeChange = fontSize => {
@@ -187,7 +187,7 @@
             window.applySettings()
         }
 
-        document.getElementById('radio-font-size-' + settings.fontSize).checked = true
+        document.getElementById(`radio-font-size-${settings.fontSize}`).checked = true
         window.applySettings()
     </script>
 {% endblock %}
