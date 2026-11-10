@@ -11,7 +11,7 @@
 [「缝合像素字体」](https://github.com/TakWolf/fusion-pixel-font) 的算法粗黑体风格版本。
 
 > [!WARNING]
-> 
+>
 > 这不是一个正式项目，仅用于测试，旨在提供思路和验证概念。
 
 ## 预览
